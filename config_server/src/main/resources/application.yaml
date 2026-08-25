@@ -1,0 +1,18 @@
+
+server:
+  port: 8088
+spring:
+  application:
+    name: CONFIG-SERVER
+
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/virajthange-sodel/microservice-configurations
+          clone-on-start: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8090/eureka/
