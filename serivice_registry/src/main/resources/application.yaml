@@ -1,0 +1,14 @@
+server:
+  port: 8090
+
+spring:
+  application:
+    name: serivice_registry
+
+eureka:
+  client:
+    register-with-eureka: false   # this app IS the registry — it shouldn't register itself as a client
+    fetch-registry: false         # it doesn't need to fetch the registry from anywhere else
+  server:
+    enable-self-preservation: false   # dev-friendly: expires dead instances quickly instead of hiding failures
+    eviction-interval-timer-in-ms: 5000
