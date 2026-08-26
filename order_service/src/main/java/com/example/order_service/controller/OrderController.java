@@ -6,6 +6,7 @@ import com.example.order_service.repositories.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClient;
 
@@ -17,6 +18,7 @@ import java.util.List;
 public class OrderController {
     private final OrderRepository orderRepository;
     private final RestClient restClient;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
 
     @PostMapping
@@ -28,6 +30,8 @@ public class OrderController {
 
         System.out.println(product);
         Order savedOrder = orderRepository.save(order);
+
+        kafkaTemplate.send("order-counter", "Order created");
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)

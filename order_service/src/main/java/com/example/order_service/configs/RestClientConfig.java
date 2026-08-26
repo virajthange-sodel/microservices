@@ -11,8 +11,8 @@ public class RestClientConfig {
     @LoadBalanced
     public RestClient restClient() {
         return RestClient.builder()
-//                .baseUrl("http://localhost:8080")
-                .baseUrl("http://PRODUCT-SERVICE")
+                .baseUrl("http://localhost:8080")
+//                .baseUrl("http://PRODUCT-SERVICE")
                 .build();
     }
 }

@@ -1,0 +1,31 @@
+server:
+  port: 8091
+spring:
+  application:
+    name: ORDER-COUNT-SERVICE
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+#  cloud:
+#    config:
+#      server:
+#        git:
+#          uri: https://github.com/virajthange-sodel/microservice-configurations
+#          clone-on-start: true
+  kafka:
+    bootstrap-servers: localhost:9092
+
+    consumer:
+      group-id: counter-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8090/eureka/
+  instance:
+    prefer-ip-address: true

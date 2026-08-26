@@ -11,7 +11,7 @@ spring:
         webmvc:
           routes:
             - id: product-service
-              uri: lb://PRODUCT-SERVICE
+              uri: lb://PRODUCT-SERVICEcd
               predicates:
                 - Path=/api/products/**
 
