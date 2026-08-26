@@ -11,4 +11,5 @@ eureka:
     fetch-registry: false         # it doesn't need to fetch the registry from anywhere else
   server:
     enable-self-preservation: false   # dev-friendly: expires dead instances quickly instead of hiding failures
-    eviction-interval-timer-in-ms: 5000
+#    eviction-interval-timer-in-ms: 5000
+

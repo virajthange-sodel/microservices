@@ -1,18 +1,23 @@
 package com.example.order_service.configs;
 
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.web.client.RestClient;
 
 @Configuration
 public class RestClientConfig {
     @Bean
     @LoadBalanced
-    public RestClient restClient() {
-        return RestClient.builder()
-                .baseUrl("http://localhost:8080")
-//                .baseUrl("http://PRODUCT-SERVICE")
-                .build();
+    public RestClient.Builder loadBalancedRestClientBuilder() {
+        return RestClient.builder();
+    }
+
+    @Bean
+    @Primary
+    public RestClient.Builder restClientBuilder() {
+        return RestClient.builder();
     }
 }

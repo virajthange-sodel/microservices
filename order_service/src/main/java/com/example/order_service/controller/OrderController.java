@@ -3,7 +3,10 @@ package com.example.order_service.controller;
 import com.example.order_service.entities.Order;
 import com.example.order_service.entities.Product;
 import com.example.order_service.repositories.OrderRepository;
+import com.netflix.discovery.converters.Auto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -14,17 +17,27 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/orders")
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class OrderController {
     private final OrderRepository orderRepository;
-    private final RestClient restClient;
+    private final RestClient.Builder restClientBuilder;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
+    public OrderController(
+            OrderRepository orderRepository,
+            @Qualifier("loadBalancedRestClientBuilder") RestClient.Builder restClientBuilder,
+            KafkaTemplate<String, String> kafkaTemplate) {
+        this.orderRepository = orderRepository;
+        this.restClientBuilder = restClientBuilder;
+        this.kafkaTemplate = kafkaTemplate;
+    }
 
     @PostMapping
     public ResponseEntity<Order> createOrder(@RequestBody Order order) {
-        Product product = restClient.get()
-                .uri("/api/products/{id}", order.getProductId())
+        Product product = restClientBuilder.build()
+                .get()
+                .uri("http://PRODUCT-SERVICE/api/products/{id}", order.getProductId())
+//                .uri("http://localhost:8080/api/products/{id}", order.getProductId())
                 .retrieve()
                 .body(Product.class);
 
@@ -41,9 +54,7 @@ public class OrderController {
 
     @GetMapping
     public ResponseEntity<List<Order>> getAllOrders() {
-
         List<Order> orders = orderRepository.findAll();
-
         return ResponseEntity.ok(orders);
     }
 //
