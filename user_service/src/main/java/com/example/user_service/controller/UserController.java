@@ -4,8 +4,10 @@ import com.example.user_service.entities.User;
 import com.example.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -28,5 +30,10 @@ public class UserController {
     public ResponseEntity<User> getUserById(@PathVariable Integer id) {
         return ResponseEntity.ok(userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found...!")));
+    }
+
+    @Scheduled(cron = "*/5 * * * * *")
+    public void scheduleTask() {
+        System.out.println("This is scheduled task "+ LocalDateTime.now());
     }
 }
