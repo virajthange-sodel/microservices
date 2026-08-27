@@ -4,11 +4,13 @@ import com.example.user_service.entities.User;
 import com.example.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/users")
@@ -32,8 +34,22 @@ public class UserController {
                 .orElseThrow(() -> new RuntimeException("User not found...!")));
     }
 
-    @Scheduled(cron = "*/5 * * * * *")
+//    second minute hour day-of-month month day-of-week
+//    @Scheduled(cron = "*/5 * * * * *")
+//    @Scheduled(cron = "*/5 * * * * MON-FRI")
+//    @Scheduled(cron = "*/5 10/5 1 1-15 AUG MON-FRI")
+//    @Scheduled(fixedDelay = 5, timeUnit = TimeUnit.SECONDS)
+    @Scheduled(initialDelay = 2000,fixedRate = 5000)
+    @Async("cronsExecutor")
     public void scheduleTask() {
+        System.out.println("Thread name is: "+Thread.currentThread().getName());
         System.out.println("This is scheduled task "+ LocalDateTime.now());
+    }
+
+    @Scheduled(cron = "*/5 * * * * *")
+    @Async("emailExecutor")
+    public void scheduleEmail() {
+        System.out.println("Theread name: "+ Thread.currentThread().getName());
+        System.out.println("Sending email...");
     }
 }
