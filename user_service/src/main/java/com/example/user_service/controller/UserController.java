@@ -15,8 +15,8 @@ public class UserController {
     private final UserRepository userRepository;
 
     @PostMapping
-    public User createUser(@RequestBody User user) {
-        return userRepository.save(user);
+    public ResponseEntity<User> createUser(@RequestBody User user) {
+        return ResponseEntity.status(201).body(userRepository.save(user));
     }
 
     @GetMapping
