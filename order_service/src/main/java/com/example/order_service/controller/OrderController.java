@@ -143,9 +143,14 @@ public class OrderController {
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(product)
                 .retrieve()
+//                .onStatus((status) -> status.v )
+//                .onStatus(HttpStatusCode::is5xxServerError, (request, response)-> {
+//                    throw new RuntimeException("Eroor at server side...");
+//                })
                 .toEntity(Product.class);
         System.out.println(entity);
-        if(entity.getStatusCode().value() == 201) {
+//        if(entity.getStatusCode().value() == 201) {
+        if(entity.getStatusCode().is2xxSuccessful()) {
             return ResponseEntity.status(200).body(product);
         }else{
             return ResponseEntity.status(500).body(null);
