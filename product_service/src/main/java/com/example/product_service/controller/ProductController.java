@@ -1,10 +1,12 @@
 package com.example.product_service.controller;
 
 import com.example.product_service.dtos.ProductDto;
+import com.example.product_service.dtos.ProductStatus;
 import com.example.product_service.entitites.Product;
 import com.example.product_service.repositories.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +24,6 @@ public class ProductController {
    @Value("${server.port}")
    private String port;
 
-
    @PostMapping
    public ResponseEntity<Product> createProduct(@RequestBody ProductDto productdto) {
 
@@ -32,6 +33,8 @@ public class ProductController {
 //      product.setId(UUID.randomUUID().toString());
       product.setName(productdto.getName());
       product.setInventory(productdto.getInventory());
+      product.setStatus(productdto.getStatus());
+      product.setUserId(productdto.getUserId());
       System.out.println(product);
       Product save = productRepository.save(product);
       return ResponseEntity
@@ -39,30 +42,31 @@ public class ProductController {
               .body(save);
    }
 
-
    @GetMapping
    public ResponseEntity<List<Product>> getAllProducts() {
-
       return ResponseEntity.ok(
               new ArrayList<>(productRepository.findAll())
       );
    }
 
-
-   @GetMapping("/{id}")
-   public ResponseEntity<Product> getProduct(
-           @PathVariable Integer id
-   ) {
-
-      Product product = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
-
-      if (product == null) {
-         return ResponseEntity.notFound().build();
-      }
-
-      return ResponseEntity.ok(product);
+   @PostMapping("/cronjob")
+   public void hitCronTask() {
+      System.out.println("Cron job executed...!");
    }
 
+   @GetMapping("/byuser")
+   public List<Product> getProductsByUserId(@RequestParam Integer userId) {
+      List<Product> byUserId = productRepository.findByUserId(userId);
+      System.out.println(byUserId);
+      return byUserId;
+
+   }
+
+   @GetMapping("/{id}")
+   public ResponseEntity<Product> getProduct(@PathVariable Integer id) {
+      Product product = productRepository.findById(id).orElseThrow(() -> new RuntimeException("Product not found"));
+      return ResponseEntity.ok(product);
+   }
 
 //   @PutMapping("/{id}")
 //   public ResponseEntity<ProductDto> updateProduct(
@@ -79,26 +83,22 @@ public class ProductController {
 //              product.name(),
 //              product.price()
 //      );
-//
 //      products.put(id, updatedProduct);
-//
 //      return ResponseEntity.ok(updatedProduct);
 //   }
 
 
    @DeleteMapping("/{id}")
-   public ResponseEntity<Void> deleteProduct(
-           @PathVariable Integer id
-   ) {
-
+   public ResponseEntity<Void> deleteProduct(@PathVariable Integer id) {
       Optional<Product> byId = productRepository.findById(id);
       if (byId.isEmpty()) {
          return ResponseEntity.notFound().build();
       }
-
       Product product = byId.get();
+      if(product.getStatus() == ProductStatus.INACTIVE || product.getInventory() < 1) {
+         throw new RuntimeException("Product is not active...!");
+      }
       productRepository.deleteById(product.getId());
-
       return ResponseEntity.noContent().build();
    }
 }

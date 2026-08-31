@@ -1,15 +1,19 @@
 package com.example.user_service.controller;
 
+import com.example.user_service.entities.Product;
 import com.example.user_service.entities.User;
 import com.example.user_service.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestClient;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @RestController
@@ -17,15 +21,30 @@ import java.util.concurrent.TimeUnit;
 @RequiredArgsConstructor
 public class UserController {
     private final UserRepository userRepository;
+    private final RestClient.Builder restClientBuilder;
 
     @PostMapping
     public ResponseEntity<User> createUser(@RequestBody User user) {
         return ResponseEntity.status(201).body(userRepository.save(user));
     }
-
     @GetMapping
     public List<User> getAllUsers() {
         return userRepository.findAll();
+    }
+
+    @GetMapping("/{id}/products")
+    public List<Product> getUserWithProducts(@PathVariable Integer id) {
+        System.out.println("Hitting user-products api");
+        Optional<User> byId = userRepository.findById(id);
+        if(byId.isEmpty()) {
+            throw new RuntimeException("User not found...!");
+        }
+        User user = byId.get();
+
+        return restClientBuilder.build().get()
+                .uri("http://localhost:8080/api/products/byuser?userId={id}", id)
+                .retrieve()
+                .body(new ParameterizedTypeReference<List<Product>>() {});
     }
 
     @GetMapping("/{id}")

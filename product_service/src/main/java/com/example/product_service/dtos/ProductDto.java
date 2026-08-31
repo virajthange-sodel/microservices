@@ -9,4 +9,6 @@ public class ProductDto {
     private String id;
     private String name;
     private Integer inventory;
+    private ProductStatus status;
+    private Integer userId;
 }
