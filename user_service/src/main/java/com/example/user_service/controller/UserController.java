@@ -58,17 +58,20 @@ public class UserController {
 //    @Scheduled(cron = "*/5 * * * * MON-FRI")
 //    @Scheduled(cron = "*/5 10/5 1 1-15 AUG MON-FRI")
 //    @Scheduled(fixedDelay = 5, timeUnit = TimeUnit.SECONDS)
-    @Scheduled(initialDelay = 2000,fixedRate = 5000)
+//    @Scheduled(initialDelay = 2000,fixedRate = 5000)
     @Async("cronsExecutor")
     public void scheduleTask() {
         System.out.println("Thread name is: "+Thread.currentThread().getName());
         System.out.println("This is scheduled task "+ LocalDateTime.now());
     }
 
-    @Scheduled(cron = "*/5 * * * * *")
+//    @Scheduled(cron = "*/5 * * * * *")
     @Async("emailExecutor")
     public void scheduleEmail() {
         System.out.println("Theread name: "+ Thread.currentThread().getName());
         System.out.println("Sending email...");
     }
+
+
+
 }

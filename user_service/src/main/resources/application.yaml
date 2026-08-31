@@ -20,9 +20,22 @@ spring:
       hibernate:
         format_sql: true
 
+  quartz:
+    properties:
+      org:
+        quartz:
+          jobStore:
+            isClustered: true
+
+    job-store-type: jdbc
+    jdbc:
+      initialize-schema: always
+
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8090/eureka/
   instance:
     prefer-ip-address: true
+
+
