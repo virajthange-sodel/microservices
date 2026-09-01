@@ -8,102 +8,50 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class ProductRetryJob implements Job {
-
     private final Scheduler scheduler;
     private final ProductClient productClient;
 
     @Override
-    public void execute(JobExecutionContext context)
-            throws JobExecutionException {
+    public void execute(JobExecutionContext context) throws JobExecutionException {
+        int attempt = context.getMergedJobDataMap().getInt("attempt");
+        int userId = context.getMergedJobDataMap().getInt("userId");
 
-        int attempt =
-                context.getMergedJobDataMap()
-                        .getInt("attempt");
-
-        int productId =
-                context.getMergedJobDataMap()
-                        .getInt("productId");
-
-        System.out.println(
-                "Fetching product " +
-                        productId +
-                        ", attempt " +
-                        attempt
-        );
+        System.out.println("Fetching product " + userId + ", attempt " + attempt);
 
         try {
-
-            productClient.getProduct(productId);
-
-            System.out.println(
-                    "Product fetched successfully."
-            );
-
+            productClient.getProducts(userId);
+            System.out.println("Product fetched successfully.");
         } catch (Exception e) {
-
-            System.out.println(
-                    "Product fetch failed."
-            );
-
-            if (attempt < 3) {
-                scheduleNextRetry(
-                        productId,
-                        attempt + 1
-                );
+            System.out.println("Product fetch failed.");
+            if (attempt < 3) {scheduleNextRetry(userId, attempt + 1);
             } else {
-                System.out.println(
-                        "3 attempts completed. " +
-                                "No more retries."
-                );
+                System.out.println("3 attempts completed. " + "No more retries.");
             }
         }
     }
 
-    private void scheduleNextRetry(
-            int productId,
-            int nextAttempt)
-            throws JobExecutionException {
-
+    public void scheduleNextRetry(int userId, int nextAttempt) throws JobExecutionException {
         try {
-
-            JobDetail jobDetail =
-                    JobBuilder.newJob(ProductRetryJob.class)
+            JobDetail jobDetail = JobBuilder
+                            .newJob(ProductRetryJob.class)
                             .withIdentity(
-                                    "productRetryJob-" +
-                                            productId + "-" +
-                                            nextAttempt
-                            )
-                            .usingJobData(
-                                    "productId",
-                                    productId
-                            )
-                            .usingJobData(
-                                    "attempt",
-                                    nextAttempt
+                                    "productRetryJob-" + userId + "-" + nextAttempt)
+                            .usingJobData("userId", userId)
+                            .usingJobData("attempt", nextAttempt
                             )
                             .build();
 
-            Trigger trigger =
-                    TriggerBuilder.newTrigger()
+            Trigger trigger = TriggerBuilder.newTrigger()
                             .withIdentity(
-                                    "productRetryTrigger-" +
-                                            productId + "-" +
-                                            nextAttempt
+                                    "productRetryTrigger-" + userId + "-" + nextAttempt
                             )
                             .startAt(
-                                    DateBuilder.futureDate(
-                                            10,
-                                            DateBuilder.IntervalUnit.SECOND
-                                    )
+                                    DateBuilder.futureDate(10, DateBuilder.IntervalUnit.SECOND)
                             )
                             .forJob(jobDetail)
                             .build();
 
-            scheduler.scheduleJob(
-                    jobDetail,
-                    trigger
-            );
-
+            scheduler.scheduleJob(jobDetail, trigger);
         } catch (SchedulerException e) {
             throw new JobExecutionException(e);
         }

@@ -24,6 +24,11 @@ spring:
     properties:
       org:
         quartz:
+          threadPool:
+            class: org.quartz.simpl.SimpleThreadPool
+            threadCount: 5
+            threadPriority: 5
+#        quartz:
           jobStore:
             isClustered: true
 
@@ -37,5 +42,3 @@ eureka:
       defaultZone: http://localhost:8090/eureka/
   instance:
     prefer-ip-address: true
-
-

@@ -3,13 +3,21 @@ package com.example.user_service.controller;
 import com.example.user_service.entities.Product;
 import com.example.user_service.entities.User;
 import com.example.user_service.repository.UserRepository;
+import com.example.user_service.schedulars.ProductRetryJob;
+import com.example.user_service.services.QuartzServices;
+import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
+import org.quartz.JobExecutionException;
+import org.quartz.SchedulerException;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -22,6 +30,18 @@ import java.util.concurrent.TimeUnit;
 public class UserController {
     private final UserRepository userRepository;
     private final RestClient.Builder restClientBuilder;
+    private final ProductRetryJob productRetryJob;
+    private final QuartzServices quartzServices;
+
+    @PostMapping("/pause-trigger")
+    public void pauseTrigger() {
+        quartzServices.pauseJob();
+    }
+
+    @PostMapping("/resume-trigger")
+    public void resumeTrigger() {
+        quartzServices.resumeJob();
+    }
 
     @PostMapping
     public ResponseEntity<User> createUser(@RequestBody User user) {
@@ -33,18 +53,28 @@ public class UserController {
     }
 
     @GetMapping("/{id}/products")
-    public List<Product> getUserWithProducts(@PathVariable Integer id) {
+    public ResponseEntity<List<Product>> getUserWithProducts(@PathVariable Integer id) throws JobExecutionException {
         System.out.println("Hitting user-products api");
         Optional<User> byId = userRepository.findById(id);
         if(byId.isEmpty()) {
             throw new RuntimeException("User not found...!");
         }
         User user = byId.get();
-
-        return restClientBuilder.build().get()
-                .uri("http://localhost:8080/api/products/byuser?userId={id}", id)
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<Product>>() {});
+        try {
+            return ResponseEntity
+                    .status(200)
+                    .body(
+                            restClientBuilder.build()
+                                    .get()
+                    .uri("http://localhost:8080/api/products/byuser?userId={id}", id)
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<Product>>() {})
+                    );
+        }catch(Exception e) {
+            System.out.println("Product Service failed. Scheduling retry...");
+            productRetryJob.scheduleNextRetry(id, 1);
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).build();
+        }
     }
 
     @GetMapping("/{id}")
@@ -71,7 +101,4 @@ public class UserController {
         System.out.println("Theread name: "+ Thread.currentThread().getName());
         System.out.println("Sending email...");
     }
-
-
-
 }
