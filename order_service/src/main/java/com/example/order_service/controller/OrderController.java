@@ -63,13 +63,13 @@ public class OrderController {
         System.out.println(product.getClass());
 
 //        if(product.getStatusCode().value() == 200) {
-        if(product.getStatusCode() == HttpStatus.OK && product.getBody().getInventory() > 0) {
+        if (product.getStatusCode() == HttpStatus.OK && product.getBody().getInventory() > 0) {
             System.out.println("Product available");
             ProductStatus productStatus = new ProductStatus();
             productStatus.setProductId(product.getBody().getId());
             productStatus.setStatus(PStatus.AVAILABLE.toString());
             productStatusRepository.save(productStatus);
-        }else {
+        } else {
             System.out.println("Product not available");
             ProductStatus productStatus = new ProductStatus();
             productStatus.setProductId(product.getBody().getId());
@@ -79,7 +79,18 @@ public class OrderController {
 
         Order savedOrder = orderRepository.save(order);
 
-//        kafkaTemplate.send("order-counter", "Order created");
+//        kafkaTemplate.send("users-topic", "Order created");
+//        if you don't choose the partition yourself. The producer's partitioner determines where the record goes.
+//        With Kafka's default behavior, keyless records are generally distributed across partitions rather than permanently selecting one partition.
+
+//            kafkaTemplate.send("users-topic",  "Kafka key", "Order created");       //Kafka uses the key to select a partition.
+
+        if (savedOrder.getProductId() < 5) {
+            kafkaTemplate.send("users-topic", 0, "Kafka key", "Order created");
+        } else {
+
+            kafkaTemplate.send("users-topic", 1, "Kafka key", "Order created");
+        }
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(savedOrder);
@@ -91,37 +102,6 @@ public class OrderController {
         List<Order> orders = orderRepository.findAll();
         return ResponseEntity.ok(orders);
     }
-//
-//
-//    @GetMapping("/{id}")
-//    public ResponseEntity<Order> getOrderById(
-//            @PathVariable Integer id
-//    ) {
-//
-//        return orderRepository
-//    }
-
-
-//    @PutMapping("/{id}")
-//    public ResponseEntity<Order> updateOrder(
-//            @PathVariable Integer id,
-//            @RequestBody Order order
-//    ) {
-//
-//        return orderRepository.findById(id)
-//                .map(existingOrder -> {
-//
-//                    existingOrder.setProductId(order.getProductId());
-//                    existingOrder.setQuantity(order.getQuantity());
-//
-//                    Order updatedOrder =
-//                            orderRepository.save(existingOrder);
-//
-//                    return ResponseEntity.ok(updatedOrder);
-//                })
-//                .orElseGet(() -> ResponseEntity.notFound().build());
-//    }
-
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable Integer id) {
@@ -143,16 +123,15 @@ public class OrderController {
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(product)
                 .retrieve()
-//                .onStatus((status) -> status.v )
 //                .onStatus(HttpStatusCode::is5xxServerError, (request, response)-> {
 //                    throw new RuntimeException("Eroor at server side...");
 //                })
                 .toEntity(Product.class);
         System.out.println(entity);
 //        if(entity.getStatusCode().value() == 201) {
-        if(entity.getStatusCode().is2xxSuccessful()) {
+        if (entity.getStatusCode().is2xxSuccessful()) {
             return ResponseEntity.status(200).body(product);
-        }else{
+        } else {
             return ResponseEntity.status(500).body(null);
         }
     }

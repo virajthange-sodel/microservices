@@ -68,24 +68,6 @@ public class ProductController {
       return ResponseEntity.ok(product);
    }
 
-//   @PutMapping("/{id}")
-//   public ResponseEntity<ProductDto> updateProduct(
-//           @PathVariable Long id,
-//           @RequestBody ProductDto product
-//   ) {
-//
-//      if (!products.containsKey(id)) {
-//         return ResponseEntity.notFound().build();
-//      }
-//
-//      ProductDto updatedProduct = new ProductDto(
-//              id,
-//              product.name(),
-//              product.price()
-//      );
-//      products.put(id, updatedProduct);
-//      return ResponseEntity.ok(updatedProduct);
-//   }
 
 
    @DeleteMapping("/{id}")

@@ -67,7 +67,7 @@ public class UserController {
                             restClientBuilder.build()
                                     .get()
                     .uri("http://localhost:8080/api/products/byuser?userId={id}", id)
-                    .retrieve()
+                    .retrieve()                     //It returns RestClient.ResponseSpec, it gives you an object that lets you tell Spring how you want to handle the response.
                     .body(new ParameterizedTypeReference<List<Product>>() {})
                     );
         }catch(Exception e) {

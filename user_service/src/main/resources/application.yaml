@@ -1,6 +1,12 @@
 server:
   port: 8086
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
 spring:
   application:
     name: USER-SERVICE
@@ -19,6 +25,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
 
   quartz:
     properties:

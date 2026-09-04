@@ -30,7 +30,7 @@ public class MyQuartzJob implements Job {
             System.out.println("Executed by "+ Thread.currentThread().getName());
 
             try {
-                Thread.sleep(2000);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
