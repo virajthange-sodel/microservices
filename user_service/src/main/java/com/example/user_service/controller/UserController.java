@@ -9,6 +9,7 @@ import jakarta.ws.rs.core.Response;
 import lombok.RequiredArgsConstructor;
 import org.quartz.JobExecutionException;
 import org.quartz.SchedulerException;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -26,12 +27,30 @@ import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/users")
-@RequiredArgsConstructor
+//@RequiredArgsConstructor
 public class UserController {
     private final UserRepository userRepository;
     private final RestClient.Builder restClientBuilder;
     private final ProductRetryJob productRetryJob;
     private final QuartzServices quartzServices;
+
+    public UserController(
+            UserRepository userRepository,
+            @Qualifier("loadBalancedRestClientBuilder") RestClient.Builder restClientBuilder,
+            ProductRetryJob productRetryJob,
+            QuartzServices quartzServices) {
+        this.userRepository = userRepository;
+        this.restClientBuilder = restClientBuilder;
+        this.productRetryJob = productRetryJob;
+        this.quartzServices = quartzServices;
+    }
+//
+//    @GetMapping("/give-user/{userId}")
+//    public ResponseEntity<User> getSingleUser(@PathVariable Integer userId) {
+////        User user = userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found in db."));
+//        User user = userFeign.getUser(userId);
+//        return ResponseEntity.status(200).body(user);
+//    }
 
     @PostMapping("/pause-trigger")
     public void pauseTrigger() {
@@ -66,7 +85,8 @@ public class UserController {
                     .body(
                             restClientBuilder.build()
                                     .get()
-                    .uri("http://localhost:8080/api/products/byuser?userId={id}", id)
+//                    .uri("http://localhost:8080/api/products/byuser?userId={id}", id)
+                    .uri("http://PRODUCT-SERVICE/api/products/byuser?userId={id}", id)
                     .retrieve()                     //It returns RestClient.ResponseSpec, it gives you an object that lets you tell Spring how you want to handle the response.
                     .body(new ParameterizedTypeReference<List<Product>>() {})
                     );

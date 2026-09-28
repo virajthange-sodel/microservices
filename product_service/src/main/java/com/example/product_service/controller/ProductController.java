@@ -68,8 +68,6 @@ public class ProductController {
       return ResponseEntity.ok(product);
    }
 
-
-
    @DeleteMapping("/{id}")
    public ResponseEntity<Void> deleteProduct(@PathVariable Integer id) {
       Optional<Product> byId = productRepository.findById(id);

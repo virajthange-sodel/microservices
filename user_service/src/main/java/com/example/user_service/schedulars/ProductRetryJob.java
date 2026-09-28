@@ -32,6 +32,12 @@ public class ProductRetryJob implements Job {
 
     public void scheduleNextRetry(int userId, int nextAttempt) throws JobExecutionException {
         try {
+            JobKey jobKey = new JobKey("productRetryJob-" + userId + "-" + nextAttempt);
+
+            if (scheduler.checkExists(jobKey)) {
+                System.out.println("Retry job already exists: " + jobKey);
+                return;
+            }
             JobDetail jobDetail = JobBuilder
                             .newJob(ProductRetryJob.class)
                             .withIdentity(

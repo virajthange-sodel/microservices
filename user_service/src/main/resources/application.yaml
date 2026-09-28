@@ -7,6 +7,9 @@ management:
       exposure:
         include: "*"
 
+  tracing:
+    sampling:
+      probability: 1.0
 spring:
   application:
     name: USER-SERVICE
